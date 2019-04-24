@@ -179,7 +179,7 @@ MAILDIR_GC_TIME=${MAILDIR_GC_TIME:-1440}
 #ADDITIONAL_SAN=imap.*,srv1.example.com
 #
 
-ADDITIONAL_SAN=
+ADDITIONAL_SAN=${ADDITIONAL_SAN}
 
 # Skip running ACME (acme-mailcow, Let's Encrypt certs) - y/n
 
