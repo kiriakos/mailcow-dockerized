@@ -333,7 +333,7 @@ $lang['mailbox']['excludes'] = 'Excludes';
 $lang['mailbox']['last_run_reset'] = 'Schedule next';
 $lang['mailbox']['sieve_info'] = 'You can store multiple filters per user, but only one prefilter and one postfilter can be active at the same time.<br>
 Each filter will be processed in the described order. Neither a failed script nor an issued "keep;" will stop processing of further scripts.<br>
-Prefilter → User scripts → Postfilter → <a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/sieve_after" target="_blank">global sieve postfilter</a>';
+<a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/global_sieve_before" target="_blank">Global sieve prefilter</a> → Prefilter → User scripts → Postfilter → <a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/global_sieve_after" target="_blank">Global sieve postfilter</a>';
 $lang['info']['no_action'] = 'No action applicable';
 
 
@@ -451,6 +451,7 @@ $lang['add']['delete2duplicates'] = 'Delete duplicates on destination';
 $lang['add']['delete1'] = 'Delete from source when completed';
 $lang['add']['delete2'] = 'Delete messages on destination that are not on source';
 $lang['add']['custom_params'] = 'Custom parameters';
+$lang['add']['custom_params_hint'] = 'Right: --param=xy, wrong: --param xy';
 $lang['add']['subscribeall'] = 'Subscribe all folders';
 $lang['add']['timeout1'] = 'Timeout for connection to remote host';
 $lang['add']['timeout2'] = 'Timeout for connection to local host';
@@ -556,7 +557,7 @@ $lang['admin']['f2b_netban_ipv4'] = 'IPv4 subnet size to apply ban on (8-32)';
 $lang['admin']['f2b_netban_ipv6'] = 'IPv6 subnet size to apply ban on (8-128)';
 $lang['admin']['f2b_whitelist'] = 'Whitelisted networks/hosts';
 $lang['admin']['f2b_blacklist'] = 'Blacklisted networks/hosts';
-$lang['admin']['f2b_list_info'] = 'A blacklisted host or network will always outweigh a whitelist entity. Blacklist records are created at boot-time of the container. Whitelist records are read each time a ban is about to be applied.';
+$lang['admin']['f2b_list_info'] = 'A blacklisted host or network will always outweigh a whitelist entity. <b>List updates will take a few seconds to be applied.</b>';
 $lang['admin']['search_domain_da'] = 'Search domains';
 $lang['admin']['r_inactive'] = 'Inactive restrictions';
 $lang['admin']['r_active'] = 'Active restrictions';
@@ -686,6 +687,7 @@ $lang['admin']['active_rspamd_settings_map'] = "Active settings map";
 $lang['admin']['quota_notifications_info'] = "Quota notications are sent to users once when crossing 80% and once when crossing 95% usage.";
 $lang['admin']['quarantine_retention_size'] = "Retentions per mailbox:<br><small>0 indicates <b>inactive</b>.</small>";
 $lang['admin']['quarantine_max_size'] = "Maximum size in MiB (larger elements are discarded):<br><small>0 does <b>not</b> indicate unlimited.</small>";
+$lang['admin']['quarantine_max_age'] = "Maximum age in days<br><small>Value must be equal to or greater than 1 day.</small>";
 $lang['admin']['quarantine_exclude_domains'] = "Exclude domains and alias-domains";
 $lang['admin']['quarantine_release_format'] = "Format of released items";
 $lang['admin']['quarantine_release_format_raw'] = "Unmodified original";

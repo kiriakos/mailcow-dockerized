@@ -16,6 +16,10 @@ sed -i "s/__DBUSER__/${DBUSER}/g" /usr/local/bin/quarantine_notify.py
 sed -i "s/__DBPASS__/${DBPASS}/g" /usr/local/bin/quarantine_notify.py
 sed -i "s/__DBNAME__/${DBNAME}/g" /usr/local/bin/quarantine_notify.py
 
+sed -i "s/__DBUSER__/${DBUSER}/g" /usr/local/bin/clean_q_aged.sh
+sed -i "s/__DBPASS__/${DBPASS}/g" /usr/local/bin/clean_q_aged.sh
+sed -i "s/__DBNAME__/${DBNAME}/g" /usr/local/bin/clean_q_aged.sh
+
 sed -i "s/__LOG_LINES__/${LOG_LINES}/g" /usr/local/bin/trim_logs.sh
 
 # Create missing directories
@@ -118,8 +122,11 @@ default_pass_scheme = SSHA256
 password_query = SELECT password FROM mailbox WHERE active = '1' AND username = '%u' AND domain IN (SELECT domain FROM domain WHERE domain='%d' AND active='1') AND JSON_EXTRACT(attributes, '$.force_pw_update') NOT LIKE '%%1%%'
 EOF
 
-# Create global sieve_after script
-cat /usr/local/etc/dovecot/sieve_after > /var/vmail/sieve/global.sieve
+# Migrate old sieve_after file
+[[ -f /usr/local/etc/dovecot/sieve_after ]] && mv /usr/local/etc/dovecot/sieve_after /usr/local/etc/dovecot/global_sieve_after
+# Create global sieve scripts
+cat /usr/local/etc/dovecot/global_sieve_after > /var/vmail/sieve/global_sieve_after.sieve
+cat /usr/local/etc/dovecot/global_sieve_before > /var/vmail/sieve/global_sieve_before.sieve
 
 # Check permissions of vmail/attachments directory.
 # Do not do this every start-up, it may take a very long time. So we use a stat check here.
@@ -138,6 +145,23 @@ RAND_PASS=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 24 | head -n 1)
 echo ${RAND_USER}@mailcow.local:{SHA1}$(echo -n ${RAND_PASS} | sha1sum | awk '{print $1}') > /usr/local/etc/dovecot/dovecot-master.passwd
 echo ${RAND_USER}@mailcow.local::5000:5000:::: > /usr/local/etc/dovecot/dovecot-master.userdb
 echo ${RAND_USER}@mailcow.local:${RAND_PASS} > /etc/sogo/sieve.creds
+
+if [[ -z ${MAILDIR_SUB} ]]; then
+  MAILDIR_SUB_SHARED=
+else
+  MAILDIR_SUB_SHARED=/${MAILDIR_SUB}
+fi
+cat <<EOF > /usr/local/etc/dovecot/shared_namespace.conf
+# Auto-generated file
+namespace {
+    type = shared
+    separator = /
+    prefix = Shared/%%u/
+    location = maildir:%%h${MAILDIR_SUB_SHARED}:INDEX=~${MAILDIR_SUB_SHARED}/Shared/%%u;CONTROL=~${MAILDIR_SUB_SHARED}/Shared/%%u
+    subscriptions = no
+    list = children
+}
+EOF
 
 if [[ "${ALLOW_ADMIN_EMAIL_LOGIN}" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
     # Create random master Password for SOGo 'login as user' via proxy auth
@@ -164,7 +188,8 @@ else
 fi
 
 # Compile sieve scripts
-sievec /var/vmail/sieve/global.sieve
+sievec /var/vmail/sieve/global_sieve_before.sieve
+sievec /var/vmail/sieve/global_sieve_after.sieve
 sievec /usr/local/lib/dovecot/sieve/report-spam.sieve
 sievec /usr/local/lib/dovecot/sieve/report-ham.sieve
 
@@ -176,6 +201,7 @@ chown -R vmail:vmail /var/vmail/sieve
 chown -R vmail:vmail /var/volatile
 adduser vmail tty
 chmod g+rw /dev/console
+chown root:tty /dev/console
 chmod +x /usr/local/lib/dovecot/sieve/rspamd-pipe-ham \
   /usr/local/lib/dovecot/sieve/rspamd-pipe-spam \
   /usr/local/bin/imapsync_cron.pl \
@@ -183,19 +209,20 @@ chmod +x /usr/local/lib/dovecot/sieve/rspamd-pipe-ham \
   /usr/local/bin/imapsync \
   /usr/local/bin/trim_logs.sh \
   /usr/local/bin/sa-rules.sh \
+  /usr/local/bin/clean_q_aged.sh \
   /usr/local/bin/maildir_gc.sh \
   /usr/local/sbin/stop-supervisor.sh \
   /usr/local/bin/quota_notify.py
 
 # Setup cronjobs
 echo '* * * * *    root  /usr/local/bin/imapsync_cron.pl 2>&1 | /usr/bin/logger' > /etc/cron.d/imapsync
-echo '30 3 * * *   vmail /usr/local/bin/doveadm quota recalc -A' > /etc/cron.d/dovecot-sync
+#echo '30 3 * * *   vmail /usr/local/bin/doveadm quota recalc -A' > /etc/cron.d/dovecot-sync
 echo '* * * * *    vmail /usr/local/bin/trim_logs.sh >> /dev/console 2>&1' > /etc/cron.d/trim_logs
 echo '25 * * * *   vmail /usr/local/bin/maildir_gc.sh >> /dev/console 2>&1' > /etc/cron.d/maildir_gc
 echo '30 1 * * *   root  /usr/local/bin/sa-rules.sh  >> /dev/console 2>&1' > /etc/cron.d/sa-rules
 echo '0 2 * * *    root  /usr/bin/curl http://solr:8983/solr/dovecot-fts/update?optimize=true >> /dev/console 2>&1' > /etc/cron.d/solr-optimize
 echo '*/20 * * * * vmail /usr/local/bin/quarantine_notify.py >> /dev/console 2>&1' > /etc/cron.d/quarantine_notify
-
+echo '15 4 * * * vmail /usr/local/bin/clean_q_aged.sh >> /dev/console 2>&1' > /etc/cron.d/clean_q_aged
 # Fix more than 1 hardlink issue
 touch /etc/crontab /etc/cron.*/*
 
