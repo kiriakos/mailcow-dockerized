@@ -333,7 +333,7 @@ $lang['mailbox']['excludes'] = 'Vyloučené';
 $lang['mailbox']['last_run_reset'] = 'Plánovat další';
 $lang['mailbox']['sieve_info'] = 'Můžete uložit více filtrů pro každého uživatele, ale současně může být aktivní pouze jeden prefilter a jeden postfilter.<br>
 Každý filtr bude zpracován v daném pořadí. Ani chyba při vykonávání skriptu nebo snaha o pozdržení nezastaví vykonání dalších skriptů.<br>
-Prefilter → Uživatelské skripty → Postfilter → <a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/sieve_after" target="_blank">global sieve postfilter</a>';
+<a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/global_sieve_before" target="_blank">Global sieve prefilter</a> → Prefilter → Uživatelské skripty → Postfilter → <a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/global_sieve_after" target="_blank">Global sieve postfilter</a>';
 $lang['info']['no_action'] = 'Není použitelná žádná akce';
 
 $lang['edit']['syncjob'] = 'Upravit synchronizační úlohu';
@@ -529,7 +529,7 @@ $lang['admin']['f2b_netban_ipv4'] = 'Rozsah IPv4 podsítě pro provedení blokov
 $lang['admin']['f2b_netban_ipv6'] = 'Rozsah IPv6 podsítě pro provedení blokování (8-128)';
 $lang['admin']['f2b_whitelist'] = 'Sítě/klienti na Whitelistu';
 $lang['admin']['f2b_blacklist'] = 'Sítě/klienti na Blacklistu';
-$lang['admin']['f2b_list_info'] = 'Sít nebo klienti na blacklistu budou mít vždy větší váhu než položky na whitelistu. Záznamy z blacklistu jsou vytvářeny při startu kontejneru. Záznamy ve whitelistu jsou čteny pokaždé, když je aplikováno blokování.';
+$lang['admin']['f2b_list_info'] = 'Sít nebo klienti na blacklistu budou mít vždy větší váhu než položky na whitelistu. Záznamy z blacklistu jsou vytvářeny při startu kontejneru.';
 $lang['admin']['search_domain_da'] = 'Hledat domény';
 $lang['admin']['r_inactive'] = 'Neaktivní restrikce';
 $lang['admin']['r_active'] = 'Aktivní restrikce';
@@ -712,6 +712,7 @@ $lang['quarantine']['show_item'] = "Zobrazit položku";
 $lang['quarantine']['check_hash'] = "Hledat hash @ VT souboru";
 $lang['quarantine']['qitem'] = "Položka v karanténě";
 $lang['quarantine']['subj'] = "Předmět";
+$lang['quarantine']['recipients'] = "Příjemci";
 $lang['quarantine']['text_plain_content'] = "Obsah (text/plain)";
 $lang['quarantine']['text_from_html_content'] = "Obsah (konvertované html)";
 $lang['quarantine']['atts'] = "Přílohy";

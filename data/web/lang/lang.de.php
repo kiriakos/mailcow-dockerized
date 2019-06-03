@@ -19,6 +19,7 @@ $lang['footer']['cancel'] = 'Abbrechen';
 $lang['footer']['hibp_nok'] = 'Übereinstimmung gefunden! Dieses Passwort ist potentiell gefährlich!';
 $lang['footer']['hibp_ok'] = 'Keine Übereinstimmung gefunden.';
 
+$lang['danger']['transport_dest_exists'] = "Transport Maps Ziel existiert bereits";
 $lang['danger']['unlimited_quota_acl'] = "Unendliche Quota untersagt durch ACL";
 $lang['danger']['mysql_error'] = "MySQL Fehler: %s";
 $lang['danger']['redis_error'] = "Redis Fehler: %s";
@@ -324,7 +325,7 @@ $lang['mailbox']['last_run_reset'] = 'Als nächstes ausführen';
 $lang['mailbox']['excludes'] = 'Ausschlüsse';
 $lang['mailbox']['sieve_info'] = 'Es können mehrere Filter pro Benutzer existieren, aber nur ein Filter eines Typs (Pre-/Postfilter) kann gleichzeitig aktiv sein.<br>
 Die Ausführung erfolgt in nachstehender Reihenfolge. Ein fehlgeschlagenes Script sowie der Befehl "keep;" stoppen die weitere Verarbeitung <b>nicht</b>.<br>
-Prefilter → User scripts → Postfilter → <a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/sieve_after" target="_blank">global sieve postfilter</a>';
+<a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/global_sieve_before" target="_blank">Global sieve prefilter</a> → Prefilter → User scripts → Postfilter → <a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/dovecot/global_sieve_after" target="_blank">Global sieve postfilter</a>';
 
 $lang['info']['no_action'] = 'Keine Aktion anwendbar';
 
@@ -437,6 +438,7 @@ $lang['add']['delete2duplicates'] = 'Lösche Duplikate im Ziel';
 $lang['add']['delete1'] = 'Lösche Nachricht nach Übertragung vom Quell-Server';
 $lang['add']['delete2'] = 'Lösche Nachrichten von Ziel-Server, die nicht auf Quell-Server vorhanden sind';
 $lang['add']['custom_params'] = 'Eigene Parameter';
+$lang['add']['custom_params_hint'] = 'Richtig: --param=xy, falsch: --param xy';
 $lang['add']['subscribeall'] = 'Alle synchronisierten Ordner abonnieren';
 $lang['add']['timeout1'] = 'Timeout für Verbindung zum Remote-Host';
 $lang['add']['timeout2'] = 'Timeout für Verbindung zum lokalen Host';
@@ -648,6 +650,7 @@ $lang['admin']['active_rspamd_settings_map'] = "Derzeit aktive Settings Map";
 $lang['admin']['quota_notifications_info'] = "Quota Benachrichtigungen werden an Mailboxen versendet, die 80 respektive 95 Prozent der zur Verfügung stehenden Quota überschreiten.";
 $lang['admin']['quarantine_retention_size'] = "Rückhaltungen pro Mailbox:<br><small>0 bedeutet <b>inaktiv</b>.</small>";
 $lang['admin']['quarantine_max_size'] = "Maximale Größe in MiB (größere Elemente werden verworfen):<br><small>0 bedeutet <b>nicht</b> unlimitert.</small>";
+$lang['admin']['quarantine_max_age'] = "Maximales Alter in Tagen<br><small>Wert muss größer oder gleich 1 Tag sein.</small>";
 $lang['admin']['quarantine_exclude_domains'] = "Domains und Alias-Domains ausschließen";
 $lang['admin']['quarantine_notification_sender'] = "Benachrichtigungs-E-Mail Absender";
 $lang['admin']['quota_notification_sender'] = "Benachrichtigungs-E-Mail Absender";
@@ -731,6 +734,7 @@ $lang['quarantine']['show_item'] = "Details";
 $lang['quarantine']['check_hash'] = "Checksumme auf VirusTotal suchen";
 $lang['quarantine']['qitem'] = "Quarantäneeintrag";
 $lang['quarantine']['subj'] = "Betreff";
+$lang['quarantine']['recipients'] = "Empfänger";
 $lang['quarantine']['text_plain_content'] = "Inhalt (text/plain)";
 $lang['quarantine']['text_from_html_content'] = "Inhalt (html, konvertiert)";
 $lang['quarantine']['atts'] = "Anhänge";
