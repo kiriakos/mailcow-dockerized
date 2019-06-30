@@ -198,6 +198,7 @@ SKIP_HTTP_VERIFICATION=${SKIP_HTTP_VERIFICATION:-n}
 SKIP_CLAMD=${SKIP_CLAMD}
 
 # Skip Solr on low-memory systems or if you do not want to store a readable index of your mails in solr-vol-1.
+
 SKIP_SOLR=${SKIP_SOLR}
 
 # Solr heap size in MB, there is no recommendation, please see Solr docs.
@@ -217,6 +218,9 @@ ALLOW_ADMIN_EMAIL_LOGIN=${ALLOW_ADMIN_EMAIL_LOGIN:-n}
 
 #WATCHDOG_NOTIFY_EMAIL=a@example.com,b@example.com,c@example.com
 #WATCHDOG_NOTIFY_EMAIL=
+
+# Notify about banned IP (includes whois lookup)
+WATCHDOG_NOTIFY_BAN=y
 
 # Max log lines per service to keep in Redis logs
 
