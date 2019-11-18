@@ -15,9 +15,11 @@ jQuery(function($){
         {"name":"id","type":"ID","filterable": false,"sorted": true,"direction":"DESC","title":"ID","style":{"width":"50px"}},
         {"name":"qid","breakpoints":"all","type":"text","title":lang.qid,"style":{"width":"125px"}},
         {"name":"sender","title":lang.sender},
+        {"name":"subject","title":lang.subj, "type": "text"},
         {"name":"rcpt","title":lang.rcpt, "breakpoints":"xs sm md", "type": "text"},
         {"name":"virus","title":lang.danger, "type": "text"},
-        {"name":"subject","title":lang.subj, "type": "text"},
+        {"name":"score","title": lang.spam_score, "type": "text"},
+        {"name":"notified","title":lang.notified, "type": "text"},
         {"name":"created","formatter":function unix_time_format(tm) { var date = new Date(tm ? tm * 1000 : 0); return date.toLocaleString();},"title":lang.received,"style":{"width":"170px"}},
         {"name":"action","filterable": false,"sortable": false,"style":{"text-align":"right"},"style":{"width":"220px"},"type":"html","title":lang.action,"breakpoints":"xs sm md"}
       ],
@@ -35,10 +37,18 @@ jQuery(function($){
             } else {
               item.subject = escapeHtml(item.subject);
             }
+            if (item.score === null) {
+              item.score = '-';
+            }
             if (item.virus_flag > 0) {
               item.virus = '<span class="dot-danger"></span>';
             } else {
               item.virus = '<span class="dot-neutral"></span>';
+            }
+            if(item.notified > 0) {
+              item.notified = '&#10004;';
+            } else {
+              item.notified = '&#10006;';
             }
             if (acl_data.login_as === 1) {
             item.action = '<div class="btn-group">' +
@@ -59,6 +69,7 @@ jQuery(function($){
       "paging": {"enabled": true,"limit": 5,"size": pagination_size},
       "sorting": {"enabled": true},
       "filtering": {"enabled": true,"position": "left","connectors": false,"placeholder": lang.filter_table},
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
 
@@ -87,6 +98,29 @@ jQuery(function($){
         $('#qid_detail_text').text(data.text_plain);
         $('#qid_detail_text_from_html').text(data.text_html);
 
+        $('#qid_detail_score').text(data.score);
+        $('#qid_detail_symbols').html('');
+        if (typeof data.symbols !== 'undefined') {
+          data.symbols.sort(function (a, b) {
+            if (a.score === 0) return 1
+            if (b.score === 0) return -1
+            if (b.score < 0 && a.score < 0) {
+              return a.score - b.score
+            }
+            if (b.score > 0 && a.score > 0) {
+              return b.score - a.score
+            }
+            return b.score - a.score
+          })
+          $.each(data.symbols, function (index, value) {
+            var highlightClass = ''
+            if (value.score > 0) highlightClass = 'negative'
+            else if (value.score < 0) highlightClass = 'positive'
+            else highlightClass = 'neutral'
+            $('#qid_detail_symbols').append('<span class="rspamd-symbol ' + highlightClass + '" title="' + (value.options ? value.options.join(', ') : '') + '">' + value.name + ' (<span class="score">' + value.score + '</span>)</span>');
+          });
+        }
+
         $('#qid_detail_recipients').html('');
         if (typeof data.recipients !== 'undefined') {
           $.each(data.recipients, function(index, value) {
@@ -112,6 +146,10 @@ jQuery(function($){
       }
     });
   });
+
+  $('body').on('click', 'span.footable-toggle', function () {
+    event.stopPropagation();
+  })
 
   // Initial table drawings
   draw_quarantine_table();

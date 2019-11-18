@@ -2,7 +2,7 @@ $(document).ready(function() {
   // mailcow alert box generator
   window.mailcow_alert_box = function(message, type) {
     msg = $('<span/>').text(message).text();
-    if (type == 'danger') {
+    if (type == 'danger' || type == 'info') {
       auto_hide = 0;
       $('#' + localStorage.getItem("add_modal")).modal('show');
       localStorage.removeItem("add_modal");
@@ -13,7 +13,16 @@ $(document).ready(function() {
   }
 
   // https://stackoverflow.com/questions/4399005/implementing-jquerys-shake-effect-with-animate
-  function shake(div,interval=100,distance=10,times=4) {
+  function shake(div,interval,distance,times) {
+      if(typeof interval === 'undefined') {
+        interval = 100;
+      }
+      if(typeof distance === 'undefined') {
+        distance = 10;
+      }
+      if(typeof times === 'undefined') {
+        times = 4;
+      }
     $(div).css('position','relative');
     for(var iter=0;iter<(times+1);iter++){
       $(div).animate({ left: ((iter%2==0 ? distance : distance*-1))}, interval);
@@ -144,6 +153,10 @@ $(document).ready(function() {
         });
       });
       $(this).find('button').each(function() {
+        $(this).attr("disabled", true);
+      });
+    } else if ($(this).hasClass('form-group')) {
+      $(this).find('input').each(function() {
         $(this).attr("disabled", true);
       });
     } else if ($(this).hasClass('btn')) {

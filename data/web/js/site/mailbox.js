@@ -10,11 +10,11 @@ $(document).ready(function() {
       this._super();
       var self = this;
       var domains = [];
-      
+
       $.each(self.ft.rows.all, function(i, row){
         if((row.val().domain != null) && ($.inArray(row.val().domain, domains) === -1)) domains.push(row.val().domain);
       });
-      
+
       $form_grp = $('<div/>', {'class': 'form-group'})
         .append($('<label/>', {'class': 'sr-only', text: 'Domain'}))
         .prependTo(self.$form);
@@ -133,16 +133,15 @@ $(document).ready(function() {
     $(e.currentTarget).find('#sieveDataText').html('<pre style="font-size:14px;line-height:1.1">' + sieveScript + '</pre>');
   });
   // Disable submit button on script change
-	$('#script_data').on('keyup', function() {
+	$('.textarea-code').on('keyup', function() {
     $('#add_filter_btns > #add_sieve_script').attr({"disabled": true});
-    $('#validation_msg').html('-');
 	});
   // Validate script data
   $("#validate_sieve").click(function( event ) {
     event.preventDefault();
     var script = $('#script_data').val();
     $.ajax({
-      dataType: 'jsonp',
+      dataType: 'json',
       url: "/inc/ajax/sieve_validation.php",
       type: "get",
       data: { script: script },
@@ -208,7 +207,7 @@ jQuery(function($){
         .tooltip();
     }
     $('.refresh_table').prop("disabled", false);
-    heading = ft.$el.parents('.tab-pane').find('.panel-heading')
+    heading = ft.$el.parents('.panel').find('.panel-heading')
     var ft_paging = ft.use(FooTable.Paging)
     $(heading).children('.table-lines').text(function(){
       return ft_paging.totalRows;
@@ -234,6 +233,7 @@ jQuery(function($){
         {"name":"max_quota_for_mbox","title":lang.mailbox_quota,"breakpoints":"xs sm","style":{"width":"125px"}},
         {"name":"rl","title":"RL","breakpoints":"xs sm md lg","style":{"maxWidth":"100px","width":"100px"}},
         {"name":"backupmx","filterable": false,"style":{"maxWidth":"120px","width":"120px"},"title":lang.backup_mx,"breakpoints":"xs sm md lg"},
+        {"name":"domain_admins","title":lang.domain_admins,"style":{"word-break":"break-all","min-width":"200px"},"breakpoints":"xs sm md lg","filterable":(role == "admin"),"visible":(role == "admin")},
         {"name":"active","filterable": false,"style":{"maxWidth":"80px","width":"80px"},"title":lang.active},
         {"name":"action","filterable": false,"sortable": false,"style":{"text-align":"right","maxWidth":"240px","width":"240px"},"type":"html","title":lang.action,"breakpoints":"xs sm md"}
       ],
@@ -282,7 +282,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -300,7 +300,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'domain_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
   function draw_mailbox_table() {
@@ -351,6 +352,9 @@ jQuery(function($){
               item.rl = $.map(item.rl, function(e){
                 return e;
               }).join('/1');
+              if (item.rl_scope === 'domain') {
+                item.rl = '↪ ' + item.rl + ' (via ' + item.domain + ')';
+              }
             }
             item.chkbox = '<input type="checkbox" data-id="mailbox" name="multi_select" value="' + encodeURIComponent(item.username) + '" />';
             item.tls_enforce_in = '<span class="text-' + (item.attributes.tls_enforce_in == 1 ? 'success' : 'danger') + ' glyphicon glyphicon-lock"></span>';
@@ -397,7 +401,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         //"container": "#tab-mailboxes.panel",
@@ -419,7 +423,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'mailbox_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
   function draw_resource_table() {
@@ -470,7 +475,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -491,7 +496,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'resource_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
   function draw_bcc_table() {
@@ -541,7 +547,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -559,7 +565,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'bcc_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
   function draw_recipient_map_table() {
@@ -604,7 +611,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -622,7 +629,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'recipient_map_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
   function draw_tls_policy_table() {
@@ -673,7 +681,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -691,74 +699,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'tls_policy_table');
         }
-      }
-    });
-  }
-  function draw_transport_maps_table() {
-    ft_transport_maps_table = FooTable.init('#transport_maps_table', {
-      "columns": [
-        {"name":"chkbox","title":"","style":{"maxWidth":"60px","width":"60px"},"filterable": false,"sortable": false,"type":"html"},
-        {"sorted": true,"name":"id","title":"ID","style":{"maxWidth":"60px","width":"60px","text-align":"center"}},
-        {"name":"dest","title":lang.tls_map_dest},
-        {"name":"parameters","title":lang.tls_map_parameters},
-        {"name":"active","filterable": false,"style":{"maxWidth":"80px","width":"80px"},"title":lang.active},
-        {"name":"action","filterable": false,"sortable": false,"style":{"text-align":"right","maxWidth":"180px","width":"180px"},"type":"html","title":(role == "admin" ? lang.action : ""),"breakpoints":"xs sm"}
-      ],
-      "empty": lang.empty,
-      "rows": $.ajax({
-        dataType: 'json',
-        url: '/api/v1/get/transport-map/all',
-        jsonp: false,
-        error: function () {
-          console.log('Cannot draw transport map table');
-        },
-        success: function (data) {
-          if (role == "admin") {
-            $.each(data, function (i, item) {
-              item.dest = escapeHtml(item.dest);
-              if (item.parameters == '') {
-                item.parameters = '<code>-</code>';
-              } else {
-                item.parameters = '<code>' + escapeHtml(item.parameters) + '</code>';
-              }
-              item.action = '<div class="btn-group">' +
-                '<a href="/edit/transport_map/' + item.id + '" class="btn btn-xs btn-default"><span class="glyphicon glyphicon-pencil"></span> ' + lang.edit + '</a>' +
-                '<a href="#" data-action="delete_selected" data-id="single-transport-map" data-api-url="delete/transport-map" data-item="' + item.id + '" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-trash"></span> ' + lang.remove + '</a>' +
-                '</div>';
-              item.chkbox = '<input type="checkbox" data-id="transport-map" name="multi_select" value="' + item.id + '" />';
-            });
-          }
-        }
-      }),
-      "paging": {
-        "enabled": true,
-        "limit": 5,
-        "size": pagination_size
       },
-      "state": {
-        "enabled": true
-      },
-      "filtering": {
-        "enabled": true,
-        "delay": 100,
-        "position": "left",
-        "connectors": false,
-        "placeholder": lang.filter_table
-      },
-      "sorting": {
-        "enabled": true
-      },
-      "on": {
-        "destroy.ft.table": function(e, ft){
-          $('.refresh_table').attr('disabled', 'true');
-        },
-        "ready.ft.table": function(e, ft){
-          table_mailbox_ready(ft, 'transport_maps_table');
-        },
-        "after.ft.filtering": function(e, ft){
-          table_mailbox_ready(ft, 'transport_maps_table');
-        }
-      }
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
   function draw_alias_table() {
@@ -771,6 +713,7 @@ jQuery(function($){
         {"name":"domain","title":lang.domain,"breakpoints":"xs sm"},
         {"name":"public_comment","title":lang.public_comment,"breakpoints":"all"},
         {"name":"private_comment","title":lang.private_comment,"breakpoints":"all"},
+        {"name":"sogo_visible","title":lang.sogo_visible,"breakpoints":"all"},
         {"name":"active","filterable": false,"style":{"maxWidth":"50px","width":"70px"},"title":lang.active},
         {"name":"action","filterable": false,"sortable": false,"style":{"text-align":"right","maxWidth":"180px","width":"180px"},"type":"html","title":lang.action,"breakpoints":"xs sm"}
       ],
@@ -833,7 +776,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -854,7 +797,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'alias_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
 
@@ -863,7 +807,7 @@ jQuery(function($){
       "columns": [
         {"name":"chkbox","title":"","style":{"maxWidth":"60px","width":"60px"},"filterable": false,"sortable": false,"type":"html"},
         {"sorted": true,"name":"alias_domain","title":lang.alias,"style":{"width":"250px"}},
-        {"name":"target_domain","title":lang.target_domain},
+        {"name":"target_domain","title":lang.target_domain,"type":"html"},
         {"name":"active","filterable": false,"style":{"maxWidth":"50px","width":"70px"},"title":lang.active},
         {"name":"action","filterable": false,"sortable": false,"style":{"text-align":"right","maxWidth":"250px","width":"250px"},"type":"html","title":lang.action,"breakpoints":"xs sm"}
       ],
@@ -883,6 +827,11 @@ jQuery(function($){
               '<a href="#dnsInfoModal" class="btn btn-xs btn-info" data-toggle="modal" data-domain="' + encodeURIComponent(item.alias_domain) + '"><span class="glyphicon glyphicon-question-sign"></span> DNS</a></div>' +
               '</div>';
             item.chkbox = '<input type="checkbox" data-id="alias-domain" name="multi_select" value="' + encodeURIComponent(item.alias_domain) + '" />';
+            if(item.parent_is_backupmx == '1') {
+              item.target_domain = '<span><a href="/edit/domain/' + item.target_domain + '">' + item.target_domain + '</a> <div class="label label-warning">' + lang.alias_domain_backupmx + '</div></span>';
+            } else {
+              item.target_domain = '<span><a href="/edit/domain/' + item.target_domain + '">' + item.target_domain + '</a></span>';
+            }
           });
         }
       }),
@@ -896,7 +845,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -914,7 +863,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'aliasdomain_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
 
@@ -977,7 +927,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -995,7 +945,8 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'sync_job_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   }
 
@@ -1046,7 +997,7 @@ jQuery(function($){
       },
       "filtering": {
         "enabled": true,
-        "delay": 100,
+        "delay": 1200,
         "position": "left",
         "connectors": false,
         "placeholder": lang.filter_table
@@ -1064,9 +1015,14 @@ jQuery(function($){
         "after.ft.filtering": function(e, ft){
           table_mailbox_ready(ft, 'filter_table');
         }
-      }
+      },
+      "toggleSelector": "table tbody span.footable-toggle"
     });
   };
+
+  $('body').on('click', 'span.footable-toggle', function () {
+    event.stopPropagation();
+  })
 
   draw_domain_table();
   draw_mailbox_table();
@@ -1078,6 +1034,5 @@ jQuery(function($){
   draw_bcc_table();
   draw_recipient_map_table();
   draw_tls_policy_table();
-  draw_transport_maps_table();
 
 });

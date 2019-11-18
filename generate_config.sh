@@ -2,6 +2,12 @@
 
 set -o pipefail
 
+if [[ "$(uname -r)" =~ ^4\.15\.0-60 ]]; then
+  echo "DO NOT RUN mailcow ON THIS UBUNTU KERNEL!";
+  echo "Please update to 5.x or use another distribution."
+  exit 1
+fi
+
 if grep --help 2>&1 | grep -q -i "busybox"; then
   echo "BusybBox grep detected, please install gnu grep, \"apk add --no-cache --upgrade grep\""
   exit 1
@@ -119,6 +125,8 @@ DBROOT=${DBROOT:-$DEFAULT_DBROOT}
 # ------------------------------
 
 # You should use HTTPS, but in case of SSL offloaded reverse proxies:
+# Might be important: This will also change the binding within the container.
+# If you use a proxy within Docker, point it to the ports you set below.
 
 HTTP_PORT=${HTTP_PORT:-80}
 HTTP_BIND=${HTTP_BIND:-0.0.0.0}
@@ -143,6 +151,7 @@ POPS_PORT=${POPS_PORT:-995}
 SIEVE_PORT=${SIEVE_PORT:-4190}
 DOVEADM_PORT=${DOVEADM_PORT:-127.0.0.1:19991}
 SQL_PORT=${SQL_PORT:-127.0.0.1:13306}
+SOLR_PORT=${SOLR_PORT:-127.0.0.1:18983}
 
 # Your timezone
 
@@ -184,6 +193,11 @@ ADDITIONAL_SAN=${ADDITIONAL_SAN}
 # Skip running ACME (acme-mailcow, Let's Encrypt certs) - y/n
 
 SKIP_LETS_ENCRYPT=${SKIP_LETS_ENCRYPT:-n}
+
+# Create seperate certificates for all domains - y/n
+# this will allow adding more than 100 domains, but some email clients will not be able to connect with alternative hostnames
+# see https://wiki.dovecot.org/SSL/SNIClientSupport
+ENABLE_SSL_SNI=n
 
 # Skip IPv4 check in ACME container - y/n
 
@@ -252,6 +266,9 @@ IPV6_NETWORK=${IPV6_NETWORK:-fd4d:6169:6c63:6f77::/64}
 # mail_home is ~/Maildir
 MAILDIR_SUB=${MAILDIR_SUB:-Maildir}
 
+# SOGo session timeout in minutes
+SOGO_EXPIRE_SESSION=480
+
 EOF
 
 mkdir -p data/assets/ssl
@@ -259,4 +276,4 @@ mkdir -p data/assets/ssl
 chmod 600 mailcow.conf
 
 # copy but don't overwrite existing certificate
-cp -n data/assets/ssl-example/*.pem data/assets/ssl/
+cp -n -d data/assets/ssl-example/*.pem data/assets/ssl/

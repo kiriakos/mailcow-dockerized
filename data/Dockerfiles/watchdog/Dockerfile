@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.10
 LABEL maintainer "André Peters <andre.peters@servercow.de>"
 
 # Installation
@@ -7,6 +7,7 @@ RUN apk add --update \
   nagios-plugins-tcp \
   nagios-plugins-http \
   nagios-plugins-ping \
+  mariadb-client \
   curl \
   bash \
   coreutils \
@@ -33,6 +34,4 @@ RUN apk add --update \
 
 COPY watchdog.sh /watchdog.sh
 
-ENTRYPOINT ["/sbin/tini", "-g", "--"]
-# Less verbose
 CMD /watchdog.sh 2> /dev/null

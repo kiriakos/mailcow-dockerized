@@ -35,7 +35,8 @@ RULES[3] = '-login: Aborted login \(tried to use disallowed .+\): user=.+, rip=(
 RULES[4] = 'SOGo.+ Login from \'([0-9a-f\.:]+)\' for user .+ might not have worked'
 RULES[5] = 'mailcow UI: Invalid password for .+ by ([0-9a-f\.:]+)'
 RULES[6] = '([0-9a-f\.:]+) \"GET \/SOGo\/.* HTTP.+\" 403 .+'
-#RULES[7] = '-login: Aborted login \(no auth .+\): user=.+, rip=([0-9a-f\.:]+), lip.+'
+RULES[7] = 'Rspamd UI: Invalid password by ([0-9a-f\.:]+)'
+RULES[8] = '-login: Aborted login \(auth failed .+\): user=.+, rip=([0-9a-f\.:]+), lip.+'
 
 WHITELIST = []
 BLACKLIST= []
@@ -75,8 +76,8 @@ def refreshF2boptions():
     f2boptions['ban_time'] = r.get('F2B_BAN_TIME') or 1800
     f2boptions['max_attempts'] = r.get('F2B_MAX_ATTEMPTS') or 10
     f2boptions['retry_window'] = r.get('F2B_RETRY_WINDOW') or 600
-    f2boptions['netban_ipv4'] = r.get('F2B_NETBAN_IPV4') or 24
-    f2boptions['netban_ipv6'] = r.get('F2B_NETBAN_IPV6') or 64
+    f2boptions['netban_ipv4'] = r.get('F2B_NETBAN_IPV4') or 32
+    f2boptions['netban_ipv6'] = r.get('F2B_NETBAN_IPV6') or 128
     r.set('F2B_OPTIONS', json.dumps(f2boptions, ensure_ascii=False))
   else:
     try:
@@ -107,8 +108,8 @@ def mailcowChainOrder():
           for position, item in enumerate(chain.rules):
             if item.target.name == 'MAILCOW':
               target_found = True
-              if position != 0:
-                logCrit('Error in %s chain order, restarting container' % (chain.name))
+              if position > 2:
+                logCrit('Error in %s chain order: MAILCOW on position %d, restarting container' % (chain.name, position))
                 quit_now = True
           if not target_found:
             logCrit('Error in %s chain: MAILCOW target not found, restarting container' % (chain.name))

@@ -6,6 +6,12 @@ if [ "$(id -u)" -ne "0" ]; then
   exit 1
 fi
 
+if [[ "$(uname -r)" =~ ^4\.15\.0-60 ]]; then
+  echo "DO NOT RUN mailcow ON THIS UBUNTU KERNEL!";
+  echo "Please update to 5.x or use another distribution."
+  exit 1
+fi
+
 # Exit on error and pipefail
 set -o pipefail
 
@@ -24,6 +30,20 @@ done
 export LC_ALL=C
 DATE=$(date +%Y-%m-%d_%H_%M_%S)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+function prefetch_images() {
+  [[ -z ${BRANCH} ]] && { echo -e "\e[33m\nUnknown branch...\e[0m"; exit 1; }
+  git fetch origin #${BRANCH}
+  while read image; do
+    RET_C=0
+    until docker pull ${image}; do
+      RET_C=$((RET_C + 1))
+      echo -e "\e[33m\nError pulling $image, retrying...\e[0m"
+      [ ${RET_C} -gt 3 ] && { echo -e "\e[31m\nToo many failed retries, exiting\e[0m"; exit 1; }
+      sleep 1
+    done
+  done < <(git show origin/${BRANCH}:docker-compose.yml | grep "image:" | awk '{ gsub("image:","", $3); print $2 }')
+}
 
 docker_garbage() {
   IMGS_TO_DELETE=()
@@ -95,6 +115,11 @@ while (($#)); do
       docker_garbage
       exit 0
     ;;
+    --prefetch)
+      echo -e "\e[32mPrefetching images...\e[0m"
+      prefetch_images
+      exit 0
+    ;;
     --help|-h)
     echo './update.sh [-c|--check, --ours, --gc, -h|--help]
 
@@ -143,8 +168,10 @@ CONFIG_ARRAY=(
   "ACL_ANYONE"
   "SOLR_HEAP"
   "SKIP_SOLR"
+  "ENABLE_SSL_SNI"
   "ALLOW_ADMIN_EMAIL_LOGIN"
   "SKIP_HTTP_VERIFICATION"
+  "SOGO_EXPIRE_SESSION"
 )
 
 sed -i '$a\' mailcow.conf
@@ -249,7 +276,15 @@ for option in ${CONFIG_ARRAY[@]}; do
       echo '# Solr is disabled by default after upgrading from non-Solr to Solr-enabled mailcows.' >> mailcow.conf
       echo '# Disable Solr or if you do not want to store a readable index of your mails in solr-vol-1.' >> mailcow.conf
       echo "SKIP_SOLR=y" >> mailcow.conf
-  fi
+    fi
+  elif [[ ${option} == "ENABLE_SSL_SNI" ]]; then
+    if ! grep -q ${option} mailcow.conf; then
+      echo "Adding new option \"${option}\" to mailcow.conf"
+      echo '# Create seperate certificates for all domains - y/n' >> mailcow.conf
+      echo '# this will allow adding more than 100 domains, but some email clients will not be able to connect with alternative hostnames' >> mailcow.conf
+      echo '# see https://wiki.dovecot.org/SSL/SNIClientSupport' >> mailcow.conf
+      echo "ENABLE_SSL_SNI=n" >> mailcow.conf
+    fi
   elif [[ ${option} == "MAILDIR_SUB" ]]; then
     if ! grep -q ${option} mailcow.conf; then
       echo "Adding new option \"${option}\" to mailcow.conf"
@@ -262,6 +297,12 @@ for option in ${CONFIG_ARRAY[@]}; do
       echo "Adding new option \"${option}\" to mailcow.conf"
       echo '# Notify about banned IP. Includes whois lookup.' >> mailcow.conf
       echo "WATCHDOG_NOTIFY_BAN=y" >> mailcow.conf
+  fi
+  elif [[ ${option} == "SOGO_EXPIRE_SESSION" ]]; then
+    if ! grep -q ${option} mailcow.conf; then
+      echo "Adding new option \"${option}\" to mailcow.conf"
+      echo '# SOGo session timeout in minutes' >> mailcow.conf
+      echo "SOGO_EXPIRE_SESSION=480" >> mailcow.conf
   fi
   elif ! grep -q ${option} mailcow.conf; then
     echo "Adding new option \"${option}\" to mailcow.conf"
@@ -302,17 +343,16 @@ if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
   exit 0
 fi
 
-echo -e "\e[32mPrefetching images...\e[0m"
-while read image; do
-  RET_C=0
-  until docker pull ${image}; do
-    RET_C=$((RET_C + 1))
-    echo -e "\e[33m\nError pulling $image, retrying...\e[0m"
-    [ ${RET_C} -gt 3 ] && { echo -e "\e[31m\nToo many failed retries, exiting\e[0m"; exit 1; }
-    sleep 1
-  done
-done < <(git show origin/${BRANCH}:docker-compose.yml | grep "image:" | awk '{ gsub("image:","", $3); print $2 }')
+DIFF_DIRECTORY=update_diffs
+DIFF_FILE=${DIFF_DIRECTORY}/diff_before_update_$(date +"%Y-%m-%d-%H-%M-%S")
+echo -e "\e[32mSaving diff to ${DIFF_FILE}...\e[0m"
+mkdir -p ${DIFF_DIRECTORY}
+mv diff_before_update* ${DIFF_DIRECTORY}/ 2> /dev/null
+git diff --stat > ${DIFF_FILE}
+git diff >> ${DIFF_FILE}
 
+echo -e "\e[32mPrefetching images...\e[0m"
+prefetch_images
 
 echo -e "Stopping mailcow... "
 sleep 2
@@ -376,7 +416,7 @@ docker-compose pull
 
 # Fix missing SSL, does not overwrite existing files
 [[ ! -d data/assets/ssl ]] && mkdir -p data/assets/ssl
-cp -n data/assets/ssl-example/*.pem data/assets/ssl/
+cp -n -d data/assets/ssl-example/*.pem data/assets/ssl/
 
 echo -e "Checking IPv6 settings... "
 if grep -q 'SYSCTL_IPV6_DISABLED=1' mailcow.conf; then
@@ -394,12 +434,6 @@ fi
 # Checking for old project name bug
 sed -i 's#COMPOSEPROJECT_NAME#COMPOSE_PROJECT_NAME#g' mailcow.conf
 
-echo -e "Fixing PHP-FPM worker ports for Nginx sites..."
-sed -i 's#phpfpm:9000#phpfpm:9002#g' data/conf/nginx/*.conf
-if ls data/conf/nginx/*.custom 1> /dev/null 2>&1; then
-  sed -i 's#phpfpm:9000#phpfpm:9002#g' data/conf/nginx/*.custom
-fi
-
 # Fix Rspamd maps
 if [ -f data/conf/rspamd/custom/global_from_blacklist.map ]; then
   mv data/conf/rspamd/custom/global_from_blacklist.map data/conf/rspamd/custom/global_smtp_from_blacklist.map
@@ -411,11 +445,6 @@ fi
 echo -e "\e[32mStarting mailcow...\e[0m"
 sleep 2
 docker-compose up -d --remove-orphans
-
-if [[ -f "data/web/nextcloud/occ" ]]; then
-  echo "Setting Nextcloud Redis timeout to 0.0..."
-  docker exec -it -u www-data $(docker ps -f name=php-fpm-mailcow -q) bash -c "/web/nextcloud/occ config:system:set redis timeout --value=0.0 --type=integer"
-fi
 
 echo -e "\e[32mCollecting garbage...\e[0m"
 docker_garbage

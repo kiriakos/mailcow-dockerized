@@ -77,15 +77,15 @@ elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == '
   $username = $_SESSION['mailcow_cc_username'];
   $mailboxdata = mailbox('get', 'mailbox_details', $username);
 
-  $clientconfigstr = "host=" . urlencode($mailcow_hostname) . "&email=" . urlencode($username) . "&name=" . urlencode($mailboxdata['name']) . "&ui=" . strtok(urlencode($_SERVER['HTTP_HOST']), ':') . "&port=" . urlencode($autodiscover_config['caldav']['port']);
+  $clientconfigstr = "host=" . urlencode($mailcow_hostname) . "&email=" . urlencode($username) . "&name=" . urlencode($mailboxdata['name']) . "&ui=" . urlencode(strtok($_SERVER['HTTP_HOST'], ':')) . "&port=" . urlencode($autodiscover_config['caldav']['port']);
   if ($autodiscover_config['useEASforOutlook'] == 'yes')
   $clientconfigstr .= "&outlookEAS=1";
   if (file_exists('thunderbird-plugins/version.csv')) {
     $fh = fopen('thunderbird-plugins/version.csv', 'r');
     if ($fh) {
       while (($row = fgetcsv($fh, 1000, ';')) !== FALSE) {
-        if ($row[0] == 'sogo-integrator@inverse.ca') {
-          $clientconfigstr .= "&integrator=" . urlencode($row[1]);
+        if ($row[0] == 'sogo-connector@inverse.ca') {
+          $clientconfigstr .= "&connector=" . urlencode($row[1]);
         }
       }
       fclose($fh);
