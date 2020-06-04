@@ -11,10 +11,8 @@ table.footable>tbody>tr.footable-empty>td {
 .table-responsive {
   overflow: visible !important;
 }
-@media screen and (max-width: 767px) {
-  .table-responsive {
-    overflow-x: scroll !important;
-  }
+.table-responsive {
+  overflow-x: scroll !important;
 }
 body {
   overflow-y:scroll;
@@ -52,11 +50,6 @@ body.modal-open {
   height: 65px;
   margin-top: -65px;
   visibility: hidden;
-}
-.scrollboxFixed {
-  position: fixed;
-  top: 65px;
-  z-index: 1;
 }
 .thumbnail img {
   min-height:100px;
