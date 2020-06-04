@@ -12,6 +12,26 @@ $(document).ready(function() {
     $.notify({message: msg},{z_index: 20000, delay: auto_hide, type: type,placement: {from: "bottom",align: "right"},animate: {enter: 'animated fadeInUp',exit: 'animated fadeOutDown'}});
   }
 
+  $(".generate_password").click(function( event ) {
+    event.preventDefault();
+    $('[data-hibp]').trigger('input');
+    if (typeof($(this).closest("form").data('pwgen-length')) == "number") {
+      var random_passwd = GPW.pronounceable($(this).closest("form").data('pwgen-length'))
+    }
+    else {
+      var random_passwd = GPW.pronounceable(8)
+    }
+    $(this).closest("form").find('[data-pwgen-field]').attr('type', 'text');
+    $(this).closest("form").find('[data-pwgen-field]').val(random_passwd);
+  });
+  function str_rot13(str) {
+    return (str + '').replace(/[a-z]/gi, function(s){
+      return String.fromCharCode(s.charCodeAt(0) + (s.toLowerCase() < 'n' ? 13 : -13))
+    })
+  }
+  $(".footer-text-enc").html(function(){
+    return str_rot13($(".footer-text-enc").html())
+  });
   // https://stackoverflow.com/questions/4399005/implementing-jquerys-shake-effect-with-animate
   function shake(div,interval,distance,times) {
       if(typeof interval === 'undefined') {
