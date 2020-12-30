@@ -173,6 +173,8 @@ SOLR_PORT=${SOLR_PORT:-127.0.0.1:18983}
 REDIS_PORT=${REDIS_PORT:-127.0.0.1:7654}
 
 # Your timezone
+# See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a list of timezones
+# Use the row named 'TZ database name' + pay attention for 'Notes' row
 
 TZ=${MAILCOW_TZ}
 
